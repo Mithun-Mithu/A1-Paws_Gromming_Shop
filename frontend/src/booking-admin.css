@@ -1,0 +1,292 @@
+.slot.available {
+  border-color: #9dcfbd;
+  background: #e8f6f1;
+  color: #087f70;
+}
+
+.slot.booked {
+  border-color: #efb3b3;
+  background: #fff0ef;
+  color: #b63b2d;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.slot.unavailable {
+  border-color: #e1e6e3;
+  background: #f1f3f2;
+  color: #8a9691;
+  cursor: not-allowed;
+}
+
+.slot:disabled {
+  opacity: 1;
+}
+
+.slot-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 14px 0 8px;
+  color: #64756f;
+  font-size: 12px;
+}
+
+.slot-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.slot-legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.slot-legend i.available {
+  background: #15956f;
+}
+
+.slot-legend i.booked {
+  background: #d94d4d;
+}
+
+.slot-legend i.unavailable {
+  background: #aab3af;
+}
+
+.admin-appointments-heading {
+  align-items: flex-start;
+}
+
+.appointment-export-controls,
+.admin-booking-filters {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.appointment-export-controls label,
+.admin-booking-filters label,
+.booking-detail-grid label,
+.booking-reschedule-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #53645f;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.appointment-export-controls input,
+.appointment-export-controls select,
+.admin-booking-filters input,
+.admin-booking-filters select,
+.booking-detail-grid select,
+.booking-reschedule-form input {
+  min-width: 0;
+  border: 1px solid #dce7e2;
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: #203b39;
+  background: #fff;
+}
+
+.appointment-export-controls .btn {
+  white-space: nowrap;
+}
+
+.admin-booking-filters {
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid #e7efeb;
+  border-radius: 12px;
+  background: #f8fbf9;
+}
+
+.admin-booking-search {
+  flex: 1 1 230px;
+}
+
+.appointment-table td {
+  vertical-align: top;
+}
+
+.appointment-table td small {
+  max-width: 230px;
+  white-space: normal;
+}
+
+.appointment-table td select {
+  max-width: 160px;
+}
+
+.appointment-table .text-link {
+  border: 0;
+  background: transparent;
+  padding: 4px 0 8px;
+  cursor: pointer;
+  font: 700 12px 'DM Sans';
+}
+
+.appointment-details-row > td {
+  white-space: normal;
+  background: #f8fbf9;
+}
+
+.booking-details {
+  display: grid;
+  gap: 18px;
+  padding: 8px;
+}
+
+.booking-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.booking-detail-grid section {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #e4ece8;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.booking-detail-grid h3 {
+  margin: 0 0 10px;
+  color: #174f32;
+  font: 700 14px Manrope, sans-serif;
+}
+
+.booking-detail-grid p {
+  margin: 6px 0;
+  color: #62736d;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.booking-detail-grid label {
+  margin-top: 12px;
+}
+
+.booking-amount-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.booking-amount-form label {
+  margin-top: 0;
+}
+
+.booking-amount-form input {
+  min-width: 0;
+  border: 1px solid #dce7e2;
+  border-radius: 8px;
+  padding: 8px;
+  color: #203b39;
+}
+
+.booking-amount-form button {
+  grid-column: 1 / -1;
+}
+
+.booking-detail-actions {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.booking-reschedule-form {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.danger-button {
+  background: #b63b2d;
+}
+
+.danger-button:hover {
+  background: #982c22;
+}
+
+.payment-status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: #fff4df;
+  color: #99631e;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.payment-status.paid,
+.payment-status.mock_paid {
+  background: #e4f7ee;
+  color: #14754d;
+}
+
+.payment-status.failed,
+.payment-status.refunded {
+  background: #ffeded;
+  color: #b13e37;
+}
+
+@media (max-width: 760px) {
+  .admin-appointments-heading {
+    flex-direction: column;
+  }
+
+  .appointment-export-controls {
+    width: 100%;
+  }
+
+  .appointment-export-controls label {
+    flex: 1 1 130px;
+  }
+
+  .appointment-export-controls .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .booking-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .booking-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-detail-actions,
+  .booking-reschedule-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .booking-amount-form {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-amount-form button {
+    grid-column: auto;
+  }
+
+  .booking-reschedule-form .btn,
+  .booking-detail-actions > .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
