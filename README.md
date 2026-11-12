@@ -60,6 +60,8 @@ npm run seed-admin
 npm run dev
 ```
 
+Run the backend validation tests with `npm test` from the `backend` folder.
+
 ### Frontend — Terminal 2
 
 ```powershell
@@ -88,6 +90,8 @@ Open the Vite URL, normally http://localhost:5173.
 
 - Admin dashboard metrics include total, pending, confirmed, and completed appointments.
 - Protected customer, pet, booking, and grooming-service management is available after admin login; booking status changes and CSV export are supported.
+- Super Admins and Admins can manage business contact numbers in **Contact Number Management**. Active numbers are fetched from the backend for the header, contact section, footer, booking confirmation, and floating WhatsApp chooser; contact changes do not require a frontend rebuild.
+- Contact management APIs are available under `/api/admin/contact-numbers` and require an Admin or Super Admin session. The public active contact list is available at `/api/contacts`. The database migration retains the current website numbers as initial records, with one active primary contact.
 - The bootstrap account is a **Super Admin**. Super Admins can add, edit, search, activate/deactivate, and delete admin accounts; admin passwords are bcrypt-hashed and never returned by the API.
 - Backend authorization enforces the `super_admin`, `admin`, and `staff` roles. Admins can manage bookings, customers, pets, and grooming services; Staff see only appointments assigned to them and can update their status.
 - Admin actions are recorded in an audit log. Admin-management APIs are available under `/api/admins` and require Super Admin authorization.

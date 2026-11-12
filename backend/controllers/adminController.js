@@ -10,12 +10,13 @@ import {
   setAdminStatus,
   updateAdmin as saveAdmin
 } from "../models/admin.js";
+import { phoneNumberSchema } from "../utils/phone.js";
 
 const roleSchema = z.enum(["super_admin","admin","staff"]);
 const adminFields = {
   fullName:z.string().trim().min(2).max(100),
   email:z.string().trim().email().max(254).transform(value=>value.toLowerCase()),
-  phone:z.string().trim().regex(/^[+0-9()\-\s]{7,20}$/),
+  phone:phoneNumberSchema,
   role:roleSchema
 };
 const passwordSchema = z.string().min(12).max(128)
@@ -34,7 +35,7 @@ const createSchema = z.object({
 });
 const updateSchema = z.object({
   ...adminFields,
-  phone:z.string().trim().regex(/^[+0-9()\-\s]{7,20}$/).or(z.literal(""))
+  phone:phoneNumberSchema.or(z.literal(""))
 });
 const statusSchema = z.object({status:z.enum(["active","inactive"])});
 

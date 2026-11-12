@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Download, Lock, LogOut, PawPrint, RefreshCw } from 'lucide-react';
 import { API, api } from './api';
 import AdminManagement from './AdminManagement.jsx';
+import ContactNumberManagement from './ContactNumberManagement.jsx';
+import { useContactNumbers } from './contactOptions.jsx';
 import './booking-admin.css';
 
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN')}`;
@@ -36,6 +38,7 @@ function weekStart(value) {
 }
 
 export default function AdminDashboard() {
+  const { refreshContacts } = useContactNumbers();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [signedIn, setSignedIn] = useState(false);
@@ -390,7 +393,7 @@ export default function AdminDashboard() {
     ['bookings', 'Bookings'],
     ['customers', 'Customers'],
     ['pets', 'Pets'],
-    ...(role === 'staff' ? [] : [['services', 'Grooming services']]),
+    ...(role === 'staff' ? [] : [['services', 'Grooming services'], ['contacts', 'Contact Number Management']]),
     ...(canManageAdmins ? [['admins', 'Admin management'], ['audit', 'Audit log']] : [])
   ];
 
@@ -557,6 +560,7 @@ export default function AdminDashboard() {
               </form>
             </section>
           )}
+          {section === 'contacts' && role !== 'staff' && <ContactNumberManagement onContactsChanged={refreshContacts}/>}
           {section === 'admins' && canManageAdmins && <AdminManagement currentAdmin={dashboard.currentAdmin}/>}
           {section === 'audit' && canManageAdmins && (
             <section className="admin-panel">

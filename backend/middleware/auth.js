@@ -5,7 +5,7 @@ const rolePermissions = {
   super_admin: new Set(["*"]),
   admin: new Set([
     "dashboard:read", "bookings:read", "bookings:update", "bookings:assign", "bookings:export",
-    "payments:update", "customers:read", "customers:manage", "pets:read", "pets:manage", "services:read", "services:manage"
+    "payments:update", "customers:read", "customers:manage", "pets:read", "pets:manage", "services:read", "services:manage", "contacts:manage"
   ]),
   staff: new Set(["dashboard:read", "bookings:read", "bookings:update", "customers:read", "pets:read"])
 };

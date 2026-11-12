@@ -8,10 +8,13 @@ import jwt from "jsonwebtoken";
 import { createHash, createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { db } from "./config/database.js";
+import { phoneNumberSchema } from "./utils/phone.js";
 import { requireAdmin, requirePermission } from "./middleware/auth.js";
 import { isEmailConfigured, sendAdminPasswordResetCode } from "./services/email.js";
 import { recordAdminAudit } from "./models/admin.js";
+import { getPublicContactNumbers } from "./controllers/contactNumberController.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import contactNumberRoutes from "./routes/contactNumberRoutes.js";
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32 || process.env.JWT_SECRET === "replace-with-a-long-random-secret")
   throw new Error("Set a unique JWT_SECRET of at least 32 characters in .env");
@@ -58,7 +61,7 @@ const bookingSchema = z.object({
  breed:z.string().max(80).optional().default(""), age:z.string().max(30).optional().default(""),
  size:z.string().max(30).optional().default(""), serviceIds:z.array(z.number().int().positive()).min(1),
  date:z.string().refine(isValidDateString), time:z.string().refine(isValidTimeString),
- fullName:z.string().trim().min(2).max(100), phone:z.string().trim().regex(/^[+0-9()\-\s]{7,20}$/),
+ fullName:z.string().trim().min(2).max(100), phone:phoneNumberSchema,
  email:z.string().email().optional().or(z.literal("")), notes:z.string().max(1000).optional().default(""),
  paymentMethod:z.enum(["pay_at_shop","mock_online"])
 });
@@ -68,6 +71,7 @@ app.get("/api/health",(req,res)=>{
  res.json({ok:true,service:"A1 Paws API",database:"connected"});
 });
 app.get("/api/services",(req,res)=>res.json(db.prepare("SELECT id,name,description,price,duration FROM services WHERE active=1 ORDER BY id").all()));
+app.get("/api/contacts",getPublicContactNumbers);
 
 function minutes(t){const [h,m]=t.split(":").map(Number);return h*60+m;}
 function timeString(m){return `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;}
@@ -109,7 +113,13 @@ app.get("/api/availability",(req,res)=>{
 
 app.post("/api/bookings",(req,res)=>{
  const parsed=bookingSchema.safeParse(req.body);
- if(!parsed.success) return res.status(400).json({message:"Please check the booking details",errors:parsed.error.flatten()});
+ if(!parsed.success) {
+   const phoneError=parsed.error.issues.find(issue=>issue.path[0]==="phone");
+   return res.status(400).json({
+     message:phoneError?.message||"Please check the booking details",
+     errors:parsed.error.flatten()
+   });
+ }
  const v=parsed.data;
  if(v.date < localToday()) return res.status(400).json({message:"Past dates cannot be booked"});
  const ids=[...new Set(v.serviceIds)];
@@ -258,6 +268,7 @@ app.post("/api/admin/reset-password",recoveryVerifyLimit,async(req,res)=>{
  res.json({message:"Password updated successfully. Please sign in with your new password."});
 });
 
+app.use("/api/admin/contact-numbers",contactNumberRoutes);
 app.use("/api/admin",requireAdmin);
 app.get("/api/admin/dashboard",requirePermission("dashboard:read"),(req,res)=>{
  const scalar=(query,...params)=>db.prepare(query).get(...params).n;
@@ -346,7 +357,7 @@ app.get("/api/admin/pets",requirePermission("pets:read"),(req,res)=>{
 app.patch("/api/admin/customers/:id",requirePermission("customers:manage"),(req,res)=>{
  const parsed=z.object({
    fullName:z.string().trim().min(2).max(100),
-   phone:z.string().trim().regex(/^[+0-9()\-\s]{7,20}$/),
+   phone:phoneNumberSchema,
    email:z.string().trim().email().max(254).or(z.literal("")).transform(value=>value||null)
  }).safeParse(req.body);
  const id=z.coerce.number().int().positive().safeParse(req.params.id);

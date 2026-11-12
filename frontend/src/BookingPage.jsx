@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle } from 'lucide-react';
 import { api } from './api';
+import { ContactOptions } from './contactOptions.jsx';
 import './booking-admin.css';
 
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN')}`;
@@ -13,6 +14,12 @@ function localDate(date = new Date()) {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function isValidPhone(value) {
+  const phone = value.trim();
+  const digits = phone.replace(/\D/g, '').length;
+  return /^\+?[0-9()\-\s]{6,19}$/.test(phone) && digits >= 7 && digits <= 15;
 }
 
 export default function BookingPage() {
@@ -100,6 +107,10 @@ export default function BookingPage() {
   async function submit(event) {
     event.preventDefault();
     setError('');
+    if (!isValidPhone(form.phone)) {
+      setError('Enter a valid phone number with 7 to 15 digits.');
+      return;
+    }
     setBusy(true);
     try {
       const booking = await api('/bookings', {
@@ -129,6 +140,8 @@ export default function BookingPage() {
             <strong>{money(result.totalPrice)}</strong>
             <small>Status: Pending confirmation · Payment: {result.paymentMethod === 'mock_online' ? 'Mock online payment' : 'Pay at shop'}</small>
           </div>
+          <p className="booking-contact-prompt">Questions about your appointment? Contact A1 PAWS:</p>
+          <ContactOptions variant="booking" />
           <button className="btn" onClick={() => window.print()}>Print receipt</button>
           <Link className="text-link" to="/">Back to home</Link>
         </div>
@@ -206,7 +219,7 @@ export default function BookingPage() {
           <h2><span>04</span> Your contact details</h2>
           <div className="form-grid">
             <label>Full name *<input required value={form.fullName} onChange={event => update('fullName', event.target.value)} placeholder="Your name"/></label>
-            <label>Phone number *<input required value={form.phone} onChange={event => update('phone', event.target.value)} placeholder="Your phone number"/></label>
+            <label>Phone number *<input required type="tel" autoComplete="tel" value={form.phone} onChange={event => update('phone', event.target.value)} placeholder="Your phone number"/></label>
             <label>Email<input type="email" value={form.email} onChange={event => update('email', event.target.value)} placeholder="you@example.com"/></label>
             <label className="wide">Special requests / pet instructions<textarea rows="3" value={form.notes} onChange={event => update('notes', event.target.value)} placeholder="Anything our groomer should know?"/></label>
           </div>

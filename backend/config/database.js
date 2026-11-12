@@ -98,6 +98,21 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
  details TEXT NOT NULL DEFAULT '{}',
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS contact_numbers (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ label TEXT NOT NULL,
+ country_code TEXT NOT NULL,
+ phone_number TEXT NOT NULL,
+ call_enabled INTEGER NOT NULL DEFAULT 1 CHECK(call_enabled IN (0,1)),
+ whatsapp_enabled INTEGER NOT NULL DEFAULT 1 CHECK(whatsapp_enabled IN (0,1)),
+ whatsapp_message TEXT NOT NULL DEFAULT 'Hello A1 PAWS! I would like to enquire about your pet grooming services and appointment availability.',
+ is_primary INTEGER NOT NULL DEFAULT 0 CHECK(is_primary IN (0,1)),
+ status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','inactive')),
+ created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ CHECK(is_primary=0 OR status='active'),
+ UNIQUE(country_code,phone_number)
+);
 CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(appointment_date);
 CREATE INDEX IF NOT EXISTS idx_bookings_phone ON customers(phone);
 `);
@@ -128,7 +143,21 @@ db.exec(`
  CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_email_case_insensitive ON admins(email COLLATE NOCASE);
  CREATE INDEX IF NOT EXISTS idx_bookings_assigned_admin ON bookings(assigned_admin_id);
  CREATE INDEX IF NOT EXISTS idx_admin_audit_created_at ON admin_audit_log(created_at);
+ CREATE UNIQUE INDEX IF NOT EXISTS idx_contact_numbers_single_primary ON contact_numbers(is_primary) WHERE is_primary=1;
 `);
+
+const contactCount = db.prepare("SELECT COUNT(*) AS n FROM contact_numbers").get().n;
+if (!contactCount) {
+  const insertContact = db.prepare(`INSERT INTO contact_numbers(
+    label,country_code,phone_number,call_enabled,whatsapp_enabled,whatsapp_message,is_primary,status
+  ) VALUES(?, '91', ?, 1, 1, ?, ?, 'active')`);
+  const defaultMessage = "Hello A1 PAWS! I would like to enquire about your pet grooming services and appointment availability.";
+  [
+    ["Main Contact","9740708576",1],
+    ["Alternate Contact","9901543772",0],
+    ["Additional Contact","9353639773",0]
+  ].forEach(([label,number,isPrimary])=>insertContact.run(label,number,defaultMessage,isPrimary));
+}
 
 const count = db.prepare("SELECT COUNT(*) AS n FROM services").get().n;
 if (!count) {
