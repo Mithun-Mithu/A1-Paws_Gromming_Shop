@@ -1,4 +1,23 @@
-node_modules/
+# Environment secrets
 .env
-*.sqlite
-*.db
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build files
+dist/
+build/
+
+# Logs
+*.log
+
+# Deployment
+.vercel/
+
+# SQLite database files
+backend/config/*.sqlite
+backend/config/*.sqlite-shm
+backend/config/*.sqlite-wal
+backend/config/*.db

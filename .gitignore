@@ -1,5 +1,33 @@
-node_modules/
+# SQLite database files - keep private
+backend/config/*.sqlite
+backend/config/*.sqlite-shm
+backend/config/*.sqlite-wal
+backend/config/*.db
+
+# Environment secrets
 .env
-*.sqlite
-*.db
+.env.*
+!.env.example
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build files
 dist/
+build/
+
+# Logs
+*.log
+
+# Deployment
+.vercel/
+
+# SQLite database files - keep private
+backend/config/*.sqlite
+backend/config/*.sqlite-shm
+backend/config/*.sqlite-wal
+backend/config/*.db

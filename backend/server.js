@@ -20,11 +20,25 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32 || process.env
   throw new Error("Set a unique JWT_SECRET of at least 32 characters in .env");
 const app = express();
 app.use(helmet());
-const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173,http://127.0.0.1:5173").split(",").map(origin => origin.trim()).filter(Boolean);
-app.use(cors({origin(origin, callback) {
-  if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174"
+];
+app.use(cors({
+  origin: (origin, callback) => {
+  console.log("FRONTEND ORIGIN:", origin);
+
+  if (!origin || allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+
   return callback(new Error("Origin is not allowed by CORS"));
-}}));
+},
+  credentials: true
+}));
 app.use(express.json({limit:"100kb"}));
 app.use("/api", rateLimit({windowMs:15*60*1000, limit:300}));
 app.use("/api/admins",adminRoutes);
@@ -206,11 +220,17 @@ app.post("/api/admin/forgot-password",recoveryRequestLimit,async(req,res)=>{
    });
    const issued=issueCode();
    if(issued){
-     void sendAdminPasswordResetCode(admin.email,issued.otp).catch(error=>{
-       db.prepare(`UPDATE admin_password_resets SET otp_hash=NULL,otp_salt=NULL,expires_at=NULL,
-         reset_token_hash=NULL,reset_expires_at=NULL WHERE admin_id=? AND otp_hash=?`).run(admin.id,issued.hash);
-       console.error("Admin password recovery email delivery failed",error.code||"SMTP_ERROR");
-     });
+     void sendAdminPasswordResetCode(admin.email, issued.otp)
+  .then(info => {
+    console.log("Admin recovery email accepted by SMTP:", info.messageId);
+  })
+  .catch(error => {
+    console.error("EMAIL DELIVERY FAILED:", {
+      code: error.code,
+      message: error.message,
+      responseCode: error.responseCode
+    });
+  });
    }
  }
  res.status(202).json({message:genericRecoveryMessage});
