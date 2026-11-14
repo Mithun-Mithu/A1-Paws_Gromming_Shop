@@ -10,7 +10,7 @@ import { z } from "zod";
 import { db } from "./config/database.js";
 import { phoneNumberSchema } from "./utils/phone.js";
 import { requireAdmin, requirePermission } from "./middleware/auth.js";
-import { isEmailConfigured, sendAdminPasswordResetCode } from "./services/email.js";
+import { isEmailConfigured, sendAdminPasswordResetCode, sendBookingEmail } from "./services/email.js";
 import { recordAdminAudit } from "./models/admin.js";
 import { getPublicContactNumbers } from "./controllers/contactNumberController.js";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -72,6 +72,9 @@ function isValidTimeString(value){
  return hour<24 && minute<60;
 }
 function localToday(){return db.prepare("SELECT date('now','localtime') AS date").get().date;}
+function logEmailFailure(error){
+ console.error("EMAIL DELIVERY FAILED:",{code:error?.code,message:error?.message});
+}
 
 const bookingSchema = z.object({
  petName:z.string().trim().min(1).max(80), petType:z.enum(["Dog","Cat"]),
@@ -169,6 +172,20 @@ app.post("/api/bookings",(req,res)=>{
  });
  try {
    const id=create.immediate();
+   if(v.email && isEmailConfigured()){
+     void sendBookingEmail({
+       to:v.email,
+       customerName:v.fullName,
+       reference,
+       petName:v.petName,
+       services:selected,
+       date:v.date,
+       time:v.time,
+       totalAmount:totalPrice,
+       paymentMethod:v.paymentMethod,
+       status:"pending"
+     }).catch(logEmailFailure);
+   }
    res.status(201).json({id,reference,customerName:v.fullName,petName:v.petName,date:v.date,time:v.time,totalPrice,totalDuration,paymentMethod:v.paymentMethod,paymentStatus,status:"pending",services:selected});
  } catch(err) {
    if(err.code==="A1_SLOT_CONFLICT" || err.code==="SQLITE_CONSTRAINT_UNIQUE")
@@ -228,11 +245,7 @@ app.post("/api/admin/forgot-password",recoveryRequestLimit,async(req,res)=>{
     console.log("Admin recovery email accepted by SMTP:", info.messageId);
   })
   .catch(error => {
-    console.error("EMAIL DELIVERY FAILED:", {
-      code: error.code,
-      message: error.message,
-      responseCode: error.responseCode
-    });
+    logEmailFailure(error);
   });
    }
  }
@@ -412,12 +425,33 @@ app.patch("/api/admin/bookings/:id/status",requirePermission("bookings:update"),
  if(!p.success) return res.status(400).json({message:"Invalid status"});
  const id=z.coerce.number().int().positive().safeParse(req.params.id);
  if(!id.success) return res.status(400).json({message:"Invalid booking ID"});
- const booking=db.prepare("SELECT id,reference,assigned_admin_id FROM bookings WHERE id=?").get(id.data);
+ const booking=db.prepare(`SELECT b.id,b.reference,b.assigned_admin_id,b.status,b.appointment_date,b.start_time,
+   b.final_amount,b.payment_method,c.full_name AS customer_name,c.email,p.name AS pet_name
+   FROM bookings b JOIN customers c ON c.id=b.customer_id JOIN pets p ON p.id=b.pet_id
+   WHERE b.id=?`).get(id.data);
  if(!booking) return res.status(404).json({message:"Booking not found"});
  if(req.admin.role==="staff" && booking.assigned_admin_id!==req.admin.id) return res.status(403).json({message:"You can only update appointments assigned to you"});
  const result=db.prepare("UPDATE bookings SET status=? WHERE id=?").run(p.data.status,id.data);
  if(!result.changes) return res.status(404).json({message:"Booking not found"});
  recordAdminAudit(req.admin.id,"booking.status_updated",null,{reference:booking.reference,status:p.data.status});
+ if(p.data.status==="confirmed" && booking.status!=="confirmed" && booking.email && isEmailConfigured()){
+   void Promise.resolve().then(()=>{
+     const services=db.prepare("SELECT service_name AS name,price FROM booking_services WHERE booking_id=? ORDER BY service_id")
+       .all(booking.id);
+     return sendBookingEmail({
+       to:booking.email,
+       customerName:booking.customer_name,
+       reference:booking.reference,
+       petName:booking.pet_name,
+       services,
+       date:booking.appointment_date,
+       time:booking.start_time,
+       totalAmount:booking.final_amount,
+       paymentMethod:booking.payment_method,
+       status:"confirmed"
+     });
+   }).catch(logEmailFailure);
+ }
  res.json({ok:true});
 });
 app.patch("/api/admin/bookings/:id/reschedule",requirePermission("bookings:update"),(req,res)=>{
