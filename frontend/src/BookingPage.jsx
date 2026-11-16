@@ -34,7 +34,7 @@ export default function BookingPage() {
   const [availabilityError, setAvailabilityError] = useState('');
   const [form, setForm] = useState({
     petName: '', petType: 'Dog', breed: '', age: '', size: '',
-    fullName: '', phone: '', email: '', notes: '', paymentMethod: 'pay_at_shop'
+    fullName: '', phone: '', email: '', notes: ''
   });
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
@@ -115,7 +115,7 @@ export default function BookingPage() {
     try {
       const booking = await api('/bookings', {
         method: 'POST',
-        body: JSON.stringify({ ...form, serviceIds: selected, date, time })
+        body: JSON.stringify({ ...form, serviceIds: selected, date, time, paymentMethod: 'pay_at_shop' })
       });
       setResult(booking);
     } catch (requestError) {
@@ -138,7 +138,7 @@ export default function BookingPage() {
             <span>{result.petName} · {result.date} at {result.time}</span>
             <span>{result.services.map(service => service.name).join(', ')}</span>
             <strong>{money(result.totalPrice)}</strong>
-            <small>Status: Pending confirmation · Payment: {result.paymentMethod === 'mock_online' ? 'Mock online payment' : 'Pay at shop'}</small>
+            <small>Status: Pending confirmation · Payment: Pay at shop</small>
           </div>
           <p className="booking-contact-prompt">Questions about your appointment? Contact A1 PAWS:</p>
           <ContactOptions variant="booking" />
@@ -227,11 +227,7 @@ export default function BookingPage() {
 
         <div className="form-section">
           <h2><span>05</span> Payment preference</h2>
-          <div className="payment-options">
-            <label><input type="radio" name="payment" checked={form.paymentMethod === 'pay_at_shop'} onChange={() => update('paymentMethod', 'pay_at_shop')}/> Pay at shop</label>
-            <label><input type="radio" name="payment" checked={form.paymentMethod === 'mock_online'} onChange={() => update('paymentMethod', 'mock_online')}/> Mock online payment (testing only)</label>
-          </div>
-          <p className="hint">Online payment is simulated during development; no real payment is collected.</p>
+          <p>Payment: Pay at shop</p>
         </div>
         {error && <div className="error" role="alert">{error}</div>}
         <div className="submit-row">

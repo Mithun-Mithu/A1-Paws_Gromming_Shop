@@ -83,7 +83,7 @@ const bookingSchema = z.object({
  date:z.string().refine(isValidDateString), time:z.string().refine(isValidTimeString),
  fullName:z.string().trim().min(2).max(100), phone:phoneNumberSchema,
  email:z.string().email().optional().or(z.literal("")), notes:z.string().max(1000).optional().default(""),
- paymentMethod:z.enum(["pay_at_shop","mock_online"])
+ paymentMethod:z.enum(["pay_at_shop"])
 });
 
 app.get("/api/health",(req,res)=>{
@@ -149,7 +149,7 @@ app.post("/api/bookings",(req,res)=>{
  const totalPrice=selected.reduce((s,x)=>s+x.price,0), totalDuration=selected.reduce((s,x)=>s+x.duration,0);
  const start=minutes(v.time), end=start+totalDuration, endTime=timeString(end);
  const reference="A1P-"+randomUUID().slice(0,8).toUpperCase();
- const paymentStatus=v.paymentMethod==="mock_online"?"mock_paid":"pending";
+ const paymentStatus="pending";
  const create=db.transaction(()=>{
    const slot=getSlots(v.date,totalDuration).find(s=>s.time===v.time);
    if(!slot || !slot.available){
@@ -167,7 +167,7 @@ app.post("/api/bookings",(req,res)=>{
    const ins=db.prepare("INSERT INTO booking_services(booking_id,service_id,service_name,price,duration) VALUES(?,?,?,?,?)");
    selected.forEach(s=>ins.run(b.lastInsertRowid,s.id,s.name,s.price,s.duration));
    db.prepare("INSERT INTO payments(booking_id,provider,amount,status) VALUES(?,?,?,?)")
-     .run(b.lastInsertRowid,v.paymentMethod==="mock_online"?"mock":"shop",totalPrice,paymentStatus);
+     .run(b.lastInsertRowid,"shop",totalPrice,paymentStatus);
    return b.lastInsertRowid;
  });
  try {
