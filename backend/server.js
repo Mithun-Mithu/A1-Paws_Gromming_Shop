@@ -705,7 +705,7 @@ app.post(
       });
     }
 
-    if (!isEmailConfigured()) {
+        if (!process.env.RESEND_API_KEY) {
       return res.status(503).json({
         message: "Password recovery email is temporarily unavailable. Contact the site administrator."
       });
