@@ -45,6 +45,7 @@ function asyncHandler(handler) {
 
 const allowedOrigins = [
   "https://a1-paws.vercel.app",
+  "https://a1-paws-grooming-shop.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:5174",
