@@ -139,7 +139,7 @@ function Home() {
           <h2>We can't wait to meet your <em>best friend.</em></h2>
           <p><MapPin /> {businessAddress}</p>
           <ContactOptions />
-          <p><Instagram /> <a href="https://instagram.com/A1.PAWS" target="_blank" rel="noreferrer">@A1.PAWS</a></p>
+          <p><Instagram /> <a href="https://www.instagram.com/a1_pet_grooming_chitradurga?dmpr=MXNobHl5aXJxNjZ4OA==" target="_blank" rel="noreferrer">@A1.PAWS</a></p>
           <Link className="btn" to="/book">Book your visit</Link>
         </div>
         <div className="map-placeholder">
