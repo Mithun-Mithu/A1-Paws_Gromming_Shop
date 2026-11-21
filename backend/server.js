@@ -45,6 +45,7 @@ function asyncHandler(handler) {
 
 const allowedOrigins = [
   "https://a1-paws.vercel.app",
+  "https://a1-paws-grooming-shop.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:5174",
@@ -704,7 +705,7 @@ app.post(
       });
     }
 
-    if (!isEmailConfigured()) {
+        if (!process.env.RESEND_API_KEY) {
       return res.status(503).json({
         message: "Password recovery email is temporarily unavailable. Contact the site administrator."
       });

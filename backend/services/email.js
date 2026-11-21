@@ -130,25 +130,40 @@ export async function sendBookingEmail({
 }
 
 export async function sendAdminPasswordResetCode(email, otp) {
-  if (!isEmailConfigured()) {
-    throw new Error("SMTP email delivery is not configured");
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is not configured");
   }
 
-  const transporter = createTransporter();
-  await transporter.verify();
-
-  const info = await transporter.sendMail({
-    from: process.env.EMAIL_FROM,
-    to: email,
-    subject: "Your A1 Paws admin password reset code",
-    text: `Your A1 Paws verification code is ${otp}. It expires in 5 minutes.`,
-    html: `
-      <h2>A1 Paws Verification</h2>
-      <p>Your verification code is:</p>
-      <h1>${otp}</h1>
-      <p>This code expires in 5 minutes.</p>
-    `
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: "A1 Paws <onboarding@resend.dev>",
+      to: [email],
+      subject: "Your A1 Paws admin password reset code",
+      text: `Your A1 Paws verification code is ${otp}. It expires in 5 minutes.`,
+      html: `
+        <h2>A1 Paws Verification</h2>
+        <p>Your verification code is:</p>
+        <h1>${escapeHtml(otp)}</h1>
+        <p>This code expires in 5 minutes.</p>
+      `
+    })
   });
 
-  return info;
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    console.error("Resend email error:", response.status, result);
+    throw new Error(
+      result.message || `Resend email failed with status ${response.status}`
+    );
+  }
+
+  return result;
 }
